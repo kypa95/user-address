@@ -1,0 +1,7 @@
+
+.MuiButton-root.custom-button {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  text-transform: none;
+  font-weight: 600;
+}
