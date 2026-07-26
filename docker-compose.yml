@@ -29,7 +29,12 @@ services:
         condition: service_healthy
 
   frontend:
-    build: ./user-address-frontend
+    build:
+      context: ./user-address-frontend
+      args:
+        # Same-origin: nginx proxies /api to the backend. Override for a cloud
+        # deploy with an absolute URL, e.g. https://<backend-host>/api
+        VITE_API_URL: ${VITE_API_URL:-/api}
     ports:
       - "3000:80"
     depends_on:

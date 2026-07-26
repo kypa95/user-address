@@ -1,0 +1,31 @@
+server {
+    # Listen on the port the platform assigns (Render sets PORT); defaults to 80
+    # for Docker Compose. The nginx image runs envsubst on this template at
+    # startup, replacing ${PORT} while leaving the $host / $upstream vars alone.
+    listen ${PORT};
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # SPA fallback
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Same-origin proxy for the Docker Compose setup, where the browser calls a
+    # relative /api and this forwards it to the backend container.
+    #
+    # In a cloud deploy (Render, etc.) the frontend calls the backend by its
+    # absolute URL (VITE_API_URL), so this block is never hit. Using a variable
+    # + resolver makes nginx resolve "backend" lazily at request time instead of
+    # at startup, so the container still boots where that host does not exist.
+    location /api/ {
+        resolver 127.0.0.11 valid=30s;          # Docker's embedded DNS
+        set $upstream http://backend:8080;
+        proxy_pass $upstream$request_uri;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
