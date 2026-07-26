@@ -1,8 +1,12 @@
 package com.useraddress.user_address.user.dto;
 
+import java.util.List;
+
+import com.useraddress.user_address.address.dto.AddressRequest;
 import com.useraddress.user_address.util.ValidationPatterns;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -56,5 +60,9 @@ public record UserRequest(
         @Size(max = 100, message = "must be at most 100 characters")
         @Pattern(regexp = ValidationPatterns.PHONE_NUMBER,
                 message = "must be a phone in E.164 (+525512345678) or 10 digits")
-        String phoneNumber) {
+        String phoneNumber,
+
+        @Schema(description = "Optional addresses created together with the user, in one transaction")
+        @Valid
+        List<AddressRequest> addresses) {
 }

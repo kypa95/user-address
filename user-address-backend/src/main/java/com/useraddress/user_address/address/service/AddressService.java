@@ -2,6 +2,7 @@ package com.useraddress.user_address.address.service;
 
 import org.springframework.data.domain.Pageable;
 
+import com.useraddress.user_address.address.dto.AddressFilter;
 import com.useraddress.user_address.address.dto.AddressRequest;
 import com.useraddress.user_address.address.dto.AddressResponse;
 import com.useraddress.user_address.common.dto.ExportFile;
@@ -15,9 +16,9 @@ public interface AddressService {
 
     AddressResponse findById(String id);
 
-    PageResponse<AddressResponse> findByUserId(String userId, String search, Pageable pageable);
+    PageResponse<AddressResponse> findByUserId(String userId, AddressFilter filter, Pageable pageable);
 
-    ExportFile exportToExcel(String userId, String search);
+    ExportFile exportToExcel(String userId, AddressFilter filter);
 
     void delete(String id);
 }

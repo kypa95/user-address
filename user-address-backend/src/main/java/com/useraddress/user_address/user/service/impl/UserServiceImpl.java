@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.useraddress.user_address.address.mapper.AddressMapper;
 import com.useraddress.user_address.address.repository.AddressRepository;
 import com.useraddress.user_address.common.dto.PageResponse;
 import com.useraddress.user_address.helper.exception.GeneralException;
@@ -40,12 +41,15 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
     private final UserMapper userMapper;
+    private final AddressMapper addressMapper;
     private final UserExcelExporter userExcelExporter;
 
     /**
-     * Creates a new user after checking that its CURP, RFC and email are free.
+     * Creates a new user, together with the addresses it carries, in one
+     * transaction: if any address is rejected the whole registration rolls back,
+     * so a user is never left half created.
      *
-     * @param request the user data to persist
+     * @param request the user data, optionally with a list of addresses
      * @return the saved user mapped to a response
      * @throws GeneralException with HTTP 409 when CURP, RFC or email is already taken
      */
@@ -54,6 +58,12 @@ public class UserServiceImpl implements UserService {
     public UserResponse create(UserRequest request) {
         validateUniqueness(request, null);
         User user = userMapper.toEntity(request);
+
+        if (request.addresses() != null) {
+            request.addresses().forEach(
+                    address -> user.getAddresses().add(addressMapper.toEntity(address, user)));
+        }
+
         return userMapper.toResponse(userRepository.saveAndFlush(user));
     }
 

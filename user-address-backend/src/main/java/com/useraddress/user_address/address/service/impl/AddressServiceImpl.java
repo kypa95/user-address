@@ -3,7 +3,6 @@ package com.useraddress.user_address.address.service.impl;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,12 +10,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.useraddress.user_address.address.dto.AddressFilter;
 import com.useraddress.user_address.address.dto.AddressRequest;
 import com.useraddress.user_address.address.dto.AddressResponse;
 import com.useraddress.user_address.address.entity.Address;
 import com.useraddress.user_address.address.export.AddressExcelExporter;
 import com.useraddress.user_address.address.mapper.AddressMapper;
 import com.useraddress.user_address.address.repository.AddressRepository;
+import com.useraddress.user_address.address.repository.AddressSpecifications;
 import com.useraddress.user_address.address.service.AddressService;
 import com.useraddress.user_address.common.dto.ExportFile;
 import com.useraddress.user_address.common.dto.PageResponse;
@@ -97,23 +98,22 @@ public class AddressServiceImpl implements AddressService {
     }
 
     /**
-     * A page of a user's addresses, optionally filtered by a term matching any
-     * visible column.
+     * A page of a user's addresses, optionally narrowed by a term matching any
+     * visible column and by per-column filters.
      *
      * @param userId   owner whose addresses are listed
-     * @param search   free-text term; blank returns every address
+     * @param filter   search term and per-column criteria; empty returns every address
      * @param pageable requested page and size
      * @return a page of addresses
      * @throws GeneralException with HTTP 404 when the user does not exist
      */
     @Override
     @Transactional(readOnly = true)
-    public PageResponse<AddressResponse> findByUserId(String userId, String search, Pageable pageable) {
+    public PageResponse<AddressResponse> findByUserId(String userId, AddressFilter filter, Pageable pageable) {
         if (!userRepository.existsById(userId)) {
             throw userNotExists(userId);
         }
-        String term = (search == null) ? "" : search.trim();
-        return PageResponse.from(loadPage(userId, term, pageable).map(addressMapper::toResponse));
+        return PageResponse.from(loadPage(userId, filter, pageable).map(addressMapper::toResponse));
     }
 
     /**
@@ -121,33 +121,33 @@ public class AddressServiceImpl implements AddressService {
      * the same criteria.
      *
      * @param userId   owner whose addresses are read
-     * @param term     already trimmed search term; blank means no filter
+     * @param filter   criteria to apply; empty skips the specification entirely
      * @param pageable requested page and size
      */
-    private Page<Address> loadPage(String userId, String term, Pageable pageable) {
-        return term.isEmpty()
+    private Page<Address> loadPage(String userId, AddressFilter filter, Pageable pageable) {
+        return filter.isEmpty()
                 ? addressRepository.findByUserId(userId, pageable)
-                : addressRepository.searchByUser(userId, term, pageable);
+                : addressRepository.findAll(AddressSpecifications.matching(userId, filter), pageable);
     }
 
     /**
-     * Exports every address of a user to a spreadsheet.
+     * Exports a user's addresses to a spreadsheet, applying the same criteria
+     * the listing uses so the file matches what is on screen.
      *
      * <p>The owner's CURP goes into the file name, so exports of different
      * users never overwrite each other.
      *
      * @param userId owner whose addresses are exported
+     * @param filter search term and per-column criteria; empty exports every address
      * @return the .xlsx file and the name it should be downloaded as
      * @throws GeneralException with HTTP 404 when the user does not exist,
      *                          or HTTP 500 when the workbook cannot be written
      */
     @Override
     @Transactional(readOnly = true)
-    public ExportFile exportToExcel(String userId, String search) {
+    public ExportFile exportToExcel(String userId, AddressFilter filter) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> userNotExists(userId));
-
-        String term = (search == null) ? "" : search.trim();
 
         try {
             String fileName = Message.formatMessage(
@@ -159,7 +159,7 @@ public class AddressServiceImpl implements AddressService {
             // addresses never has them all in memory at once.
             return new ExportFile(
                     fileName,
-                    addressExcelExporter.export(pageable -> loadPage(userId, term, pageable)));
+                    addressExcelExporter.export(pageable -> loadPage(userId, filter, pageable)));
         } catch (IOException exception) {
             throw new GeneralException(
                     Message.formatMessage(Message.REPORT_GENERATION_FAILED, Models.ADDRESS.getValue()),

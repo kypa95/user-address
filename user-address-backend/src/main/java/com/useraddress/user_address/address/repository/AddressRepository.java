@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,25 +14,9 @@ import org.springframework.stereotype.Repository;
 import com.useraddress.user_address.address.entity.Address;
 
 @Repository
-public interface AddressRepository extends JpaRepository<Address, String> {
+public interface AddressRepository extends JpaRepository<Address, String>, JpaSpecificationExecutor<Address> {
 
     Page<Address> findByUserId(String userId, Pageable pageable);
-
-    @Query("""
-            SELECT a FROM Address a
-            WHERE a.user.id = :userId AND (
-                   LOWER(a.street) LIKE LOWER(CONCAT('%', :search, '%'))
-                OR LOWER(a.exteriorNumber) LIKE LOWER(CONCAT('%', :search, '%'))
-                OR LOWER(a.interiorNumber) LIKE LOWER(CONCAT('%', :search, '%'))
-                OR LOWER(a.neighborhood) LIKE LOWER(CONCAT('%', :search, '%'))
-                OR LOWER(a.state) LIKE LOWER(CONCAT('%', :search, '%'))
-                OR LOWER(a.city) LIKE LOWER(CONCAT('%', :search, '%'))
-                OR LOWER(a.postalCode) LIKE LOWER(CONCAT('%', :search, '%'))
-                OR LOWER(a.country) LIKE LOWER(CONCAT('%', :search, '%'))
-            )
-            """)
-    Page<Address> searchByUser(@Param("userId") String userId,
-            @Param("search") String search, Pageable pageable);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM Address a WHERE a.user.id = :userId")

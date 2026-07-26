@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.useraddress.user_address.address.dto.AddressFilter;
 import com.useraddress.user_address.address.dto.AddressRequest;
 import com.useraddress.user_address.address.dto.AddressResponse;
 import com.useraddress.user_address.address.service.AddressService;
@@ -87,9 +88,21 @@ public class AddressController {
     public ResponseEntity<byte[]> exportByUser(
             @Parameter(description = "Identifier of the owner") @PathVariable String userId,
             @Parameter(description = "Term searched in every visible column", example = "centro")
-            @RequestParam(required = false) String search) {
+            @RequestParam(required = false) String search,
+            @Parameter(description = "Filters the street column") @RequestParam(required = false) String street,
+            @Parameter(description = "Filters the exterior number column") @RequestParam(required = false) String exteriorNumber,
+            @Parameter(description = "Filters the interior number column") @RequestParam(required = false) String interiorNumber,
+            @Parameter(description = "Filters the neighborhood column") @RequestParam(required = false) String neighborhood,
+            @Parameter(description = "Filters the state column") @RequestParam(required = false) String state,
+            @Parameter(description = "Filters the city column") @RequestParam(required = false) String city,
+            @Parameter(description = "Filters the postal code column") @RequestParam(required = false) String postalCode,
+            @Parameter(description = "Filters the country column") @RequestParam(required = false) String country) {
 
-        ExportFile file = addressService.exportToExcel(userId, search);
+        AddressFilter filter = new AddressFilter(
+                search, street, exteriorNumber, interiorNumber, neighborhood, state, city,
+                postalCode, country);
+
+        ExportFile file = addressService.exportToExcel(userId, filter);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(
@@ -103,7 +116,8 @@ public class AddressController {
     @Operation(summary = "List the addresses of a user",
             description = "Paginated. The optional search parameter matches any visible column "
                     + "(street, numbers, neighborhood, state, city, postal code, country), "
-                    + "partial and case insensitive.")
+                    + "partial and case insensitive. Each of those columns also takes its own "
+                    + "parameter; every criterion given is combined with AND.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Page of addresses."),
             @ApiResponse(responseCode = "404", description = "User not found, code 3100.",
@@ -114,12 +128,25 @@ public class AddressController {
             @Parameter(description = "Identifier of the owner") @PathVariable String userId,
             @Parameter(description = "Term searched in every visible column", example = "centro")
             @RequestParam(required = false) String search,
+            @Parameter(description = "Filters the street column") @RequestParam(required = false) String street,
+            @Parameter(description = "Filters the exterior number column") @RequestParam(required = false) String exteriorNumber,
+            @Parameter(description = "Filters the interior number column") @RequestParam(required = false) String interiorNumber,
+            @Parameter(description = "Filters the neighborhood column") @RequestParam(required = false) String neighborhood,
+            @Parameter(description = "Filters the state column") @RequestParam(required = false) String state,
+            @Parameter(description = "Filters the city column") @RequestParam(required = false) String city,
+            @Parameter(description = "Filters the postal code column") @RequestParam(required = false) String postalCode,
+            @Parameter(description = "Filters the country column") @RequestParam(required = false) String country,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.ASC) Pageable pageable) {
+
+        AddressFilter filter = new AddressFilter(
+                search, street, exteriorNumber, interiorNumber, neighborhood, state, city,
+                postalCode, country);
+
         return ResponseHandler.wrapSuccessResponse(
                 Message.formatMessage(Message.LIST_OBJECT_WITH_OBJECT_ID, Models.ADDRESS.getValue(),
                         Models.USER.getValue(), userId),
                 HttpStatus.OK,
-                addressService.findByUserId(userId, search, pageable));
+                addressService.findByUserId(userId, filter, pageable));
     }
 
     @Operation(summary = "Update an address", description = "The owner of the address never changes.")

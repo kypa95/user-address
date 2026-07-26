@@ -17,6 +17,8 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -152,9 +154,10 @@ public class AddressExcelExporter {
         font.setBold(true);
         font.setColor(IndexedColors.WHITE.getIndex());
 
-        CellStyle style = workbook.createCellStyle();
+        XSSFCellStyle style = (XSSFCellStyle) workbook.createCellStyle();
         style.setFont(font);
-        style.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
+        // Brand primary (#3E5C76), matching the frontend theme.
+        style.setFillForegroundColor(new XSSFColor(new byte[] { 0x3E, 0x5C, 0x76 }, null));
         style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         style.setAlignment(HorizontalAlignment.CENTER);
         style.setBorderBottom(BorderStyle.THIN);
