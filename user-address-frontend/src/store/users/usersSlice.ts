@@ -51,6 +51,12 @@ const usersSlice = createSlice({
       state.columnFilters = action.payload;
       state.pagination.pageIndex = 0;
     },
+    /** Resets the listing query so leaving and re-entering the page starts clean. */
+    usersQueryReset(state) {
+      state.pagination = { pageIndex: 0, pageSize: 10 };
+      state.search = '';
+      state.columnFilters = [];
+    },
     currentCleared(state) {
       state.current = null;
       state.currentStatus = 'idle';
@@ -113,6 +119,7 @@ export const {
   paginationChanged,
   searchChanged,
   columnFiltersChanged,
+  usersQueryReset,
   currentCleared,
 } = usersSlice.actions;
 

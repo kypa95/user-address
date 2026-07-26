@@ -8,6 +8,7 @@ import {
   paginationChanged,
   searchChanged,
   columnFiltersChanged,
+  usersQueryReset,
   selectUsersColumnFilters,
   selectUsers,
   selectUsersTotal,
@@ -70,6 +71,7 @@ export function useUsersApp() {
   const filters = toColumnFilters(columnFilters);
   const filtersKey = JSON.stringify(filters);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const query = {
     page: pagination.pageIndex,
     size: pagination.pageSize,
@@ -81,11 +83,15 @@ export function useUsersApp() {
     const promise = dispatch(fetchUsers(query));
 
     return () => promise.abort();
-  }, [dispatch, query.page, query.size, query.search, filtersKey]);
+  }, [dispatch, query.page, query.size, query.search, filtersKey, query]);
+
+  // Clear the search, filters and page when leaving the listing, so coming back
+  // from create/edit starts fresh instead of keeping the old filters applied.
+  useEffect(() => () => void dispatch(usersQueryReset()), [dispatch]);
 
   const reload = useCallback(
     () => dispatch(fetchUsers(query)),
-    [dispatch, query.page, query.size, query.search, filtersKey],
+    [dispatch, query],
   );
 
   const handleColumnFiltersChange = (updater: any) => {
