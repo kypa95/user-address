@@ -30,6 +30,15 @@
   gap: 16px;
 }
 
+/* Title of the addresses block on one side, its export button on the other. */
+.detail-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
 @media (max-width: 600px) {
   .users-page {
     padding: 16px;

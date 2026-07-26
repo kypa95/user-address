@@ -62,7 +62,7 @@ export default function Login() {
             onChange={handlePasswordChange}
             error={errors.password}
             autoComplete="current-password"
-            InputProps={{
+            inputSlotProps={{
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton

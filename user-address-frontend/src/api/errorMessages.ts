@@ -25,7 +25,7 @@ export const ERROR_MESSAGES: Record<number, string> = {
   835: 'El registro no se puede eliminar.',
   837: 'La operación no es aceptable.',
   838: 'Falta información obligatoria.',
-  880: 'La lista está vacía.',
+  880: 'No hay registros para exportar.',
 
   1020: 'El correo ya está registrado por otro usuario.',
   1021: 'El teléfono ya está registrado por otro usuario.',

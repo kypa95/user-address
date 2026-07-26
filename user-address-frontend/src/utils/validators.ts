@@ -3,6 +3,8 @@
 // and the server still rejects anything that slips through.
 
 import { isValidPhoneNumber, parsePhoneNumber } from 'react-phone-number-input';
+import type { FieldDescriptor, FormErrors } from '../types/forms';
+import type { FormValues } from '../constants/forms';
 
 /** Country assumed for numbers stored before the phone field existed. */
 export const DEFAULT_PHONE_COUNTRY = 'MX';
@@ -147,7 +149,7 @@ const ADDRESS_VALIDATORS = {
  * @param {Array}  fields - [label, key, required] descriptors.
  * @returns {Record<string, string>} errors keyed by field; empty when valid.
  */
-export function validateUserForm(form, fields) {
+export function validateUserForm(form: FormValues, fields: FieldDescriptor[]): FormErrors {
   return validateForm(form, fields, USER_VALIDATORS);
 }
 
@@ -158,13 +160,17 @@ export function validateUserForm(form, fields) {
  * @param {Array}  fields - [label, key, required] descriptors.
  * @returns {Record<string, string>} errors keyed by field; empty when valid.
  */
-export function validateAddressForm(form, fields) {
+export function validateAddressForm(form: FormValues, fields: FieldDescriptor[]): FormErrors {
   return validateForm(form, fields, ADDRESS_VALIDATORS);
 }
 
 /** Shared engine: required check first, then the per-field format validator. */
-function validateForm(form, fields, validators) {
-  const errors = {};
+function validateForm(
+  form: FormValues,
+  fields: FieldDescriptor[],
+  validators: Record<string, (value: string) => string>,
+): FormErrors {
+  const errors: FormErrors = {};
 
   fields.forEach(([label, key, required]) => {
     const value = (form[key] ?? '').trim();

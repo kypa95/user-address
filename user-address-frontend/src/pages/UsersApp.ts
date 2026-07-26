@@ -29,6 +29,7 @@ import {
   selectAddressesSearch,
 } from '../store/address/addressesSlice';
 import { exportUsers } from '../api/users';
+import { exportAddressesByUser } from '../api/addresses';
 import { ROUTES, userEditPath } from '../routes/paths';
 import { toColumnFilters } from '../store/columnFilters';
 import type { User } from '../types/user';
@@ -65,6 +66,7 @@ export function useUsersApp() {
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
   const [exporting, setExporting] = useState(false);
+  const [exportingAddresses, setExportingAddresses] = useState(false);
   const filters = toColumnFilters(columnFilters);
   const filtersKey = JSON.stringify(filters);
 
@@ -142,6 +144,24 @@ export function useUsersApp() {
 
   const closeDetail = () => setDetailOpen(false);
 
+  /**
+   * Exports the addresses of the user on screen, honouring the search box of
+   * the detail table so the file matches what the modal is showing. That table
+   * has no column filters, so the term is all the criteria there is.
+   */
+  const handleExportAddresses = async () => {
+    if (!selected) return;
+
+    setExportingAddresses(true);
+    try {
+      await exportAddressesByUser(selected.id, detailSearch);
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setExportingAddresses(false);
+    }
+  };
+
   const handleEdit = (user: User) => navigate(userEditPath(user.id));
 
   const goToCreate = () => navigate(ROUTES.userCreate);
@@ -195,6 +215,8 @@ export function useUsersApp() {
     detailSearch,
     handleDetailPaginationChange,
     handleDetailSearchChange,
+    handleExportAddresses,
+    exportingAddresses,
 
     deleteOpen,
     userToDelete,

@@ -32,6 +32,7 @@ public class Message {
 
     // EXPORT MESSAGES //
     public static final String REPORT_GENERATION_FAILED = "The %s report could not be generated.";
+    public static final String NOTHING_TO_EXPORT = "There are no %s to export.";
     public static final String EXPORT_FILE_NAME = "usuarios_%s.xlsx";
     /** CURP identifies the owner, so exports of different users never collide. */
     public static final String EXPORT_ADDRESSES_FILE_NAME = "direcciones_%s_%s.xlsx";

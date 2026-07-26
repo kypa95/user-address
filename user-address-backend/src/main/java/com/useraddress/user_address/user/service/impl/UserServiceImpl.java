@@ -3,6 +3,7 @@ package com.useraddress.user_address.user.service.impl;
 import java.io.IOException;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -120,11 +121,18 @@ public class UserServiceImpl implements UserService {
      *
      * @param filter same criteria the listing accepts; empty exports everything
      * @return the .xlsx file as a byte array
-     * @throws GeneralException with HTTP 500 when the workbook cannot be written
+     * @throws GeneralException with HTTP 404 when nothing matches the criteria,
+     *                          or HTTP 500 when the workbook cannot be written
      */
     @Override
     @Transactional(readOnly = true)
     public byte[] exportToExcel(UserFilter filter) {
+        if (loadPage(filter, PageRequest.of(0, 1)).isEmpty()) {
+            throw new GeneralException(
+                    Message.formatMessage(Message.NOTHING_TO_EXPORT, Models.USER.getValue()),
+                    ErrorCode.LIST_IS_NULL.getValue(),
+                    HttpStatus.NOT_FOUND);
+        }
         try {
             return userExcelExporter.export(pageable -> loadPage(filter, pageable));
         } catch (IOException exception) {

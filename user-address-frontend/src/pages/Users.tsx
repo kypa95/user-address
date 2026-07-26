@@ -32,6 +32,8 @@ export default function Users() {
     detailSearch,
     handleDetailPaginationChange,
     handleDetailSearchChange,
+    handleExportAddresses,
+    exportingAddresses,
     deleteOpen,
     userToDelete,
     exporting,
@@ -144,9 +146,20 @@ export default function Users() {
 
             <Divider />
 
-            <Typography variant="h6">
-              Direcciones
-            </Typography>
+            <Box className="detail-section-header">
+              <Typography variant="h6">
+                Direcciones
+              </Typography>
+              <CustomButton
+                id="btn_use_export_addresses"
+                variant="outlined"
+                fullWidth={false}
+                onClick={handleExportAddresses}
+                disabled={exportingAddresses || detailLoading || detailTotal === 0}
+              >
+                {exportingAddresses ? 'Exportando…' : 'Exportar'}
+              </CustomButton>
+            </Box>
             {detailLoading ? (
               <Box className="detail-loading">
                 <CircularProgress size={28} />

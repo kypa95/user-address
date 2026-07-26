@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -140,14 +141,22 @@ public class AddressServiceImpl implements AddressService {
      * @param userId owner whose addresses are exported
      * @param filter search term and per-column criteria; empty exports every address
      * @return the .xlsx file and the name it should be downloaded as
-     * @throws GeneralException with HTTP 404 when the user does not exist,
-     *                          or HTTP 500 when the workbook cannot be written
+     * @throws GeneralException with HTTP 404 when the user does not exist or has
+     *                          no addresses matching the criteria, or HTTP 500
+     *                          when the workbook cannot be written
      */
     @Override
     @Transactional(readOnly = true)
     public ExportFile exportToExcel(String userId, AddressFilter filter) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> userNotExists(userId));
+
+        if (loadPage(userId, filter, PageRequest.of(0, 1)).isEmpty()) {
+            throw new GeneralException(
+                    Message.formatMessage(Message.NOTHING_TO_EXPORT, Models.ADDRESS.getValue()),
+                    ErrorCode.LIST_IS_NULL.getValue(),
+                    HttpStatus.NOT_FOUND);
+        }
 
         try {
             String fileName = Message.formatMessage(

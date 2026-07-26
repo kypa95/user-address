@@ -14,9 +14,10 @@ interface CustomTextFieldProps {
   disabled?: boolean;
   /** Character cap, mirroring the backend `@Size(max = ...)` for the field. */
   maxLength?: number;
-  // MUI Input props (e.g. an end adornment). Kept loose to stay compatible
-  // across MUI type versions; forwarded to TextField as-is.
-  InputProps?: Record<string, unknown>;
+  // Props for the Input slot (e.g. an adornment). MUI v9 dropped the old
+  // `InputProps`, so these go through `slotProps.input`. Kept loose to stay
+  // compatible across MUI type versions.
+  inputSlotProps?: Record<string, unknown>;
 }
 
 /**
@@ -35,9 +36,17 @@ export default function CustomTextField({
   autoFocus = false,
   disabled = false,
   maxLength,
-  InputProps,
+  inputSlotProps,
 }: CustomTextFieldProps) {
   const hasError = Boolean(error);
+  // `htmlInput` reaches the <input> itself, `input` the MUI Input that wraps it.
+  // Both live under the same slotProps object, so they are merged here instead
+  // of overwriting each other.
+  const slotProps = {
+    ...(maxLength ? { htmlInput: { maxLength } } : {}),
+    ...(inputSlotProps ? { input: inputSlotProps } : {}),
+  };
+
   return (
     <TextField
       id={id}
@@ -53,8 +62,7 @@ export default function CustomTextField({
       autoComplete={autoComplete}
       autoFocus={autoFocus}
       disabled={disabled}
-      slotProps={maxLength ? { htmlInput: { maxLength } } : undefined}
-      {...(InputProps ? ({ InputProps } as Record<string, unknown>) : {})}
+      slotProps={slotProps}
     />
   );
 }

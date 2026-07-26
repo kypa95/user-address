@@ -15,15 +15,18 @@ interface CustomPhoneInputProps {
 
 /** Mexican calling code; the field only registers Mexican numbers. */
 const MX_CODE = '52';
+const E164_PREFIX = `+${MX_CODE}`;
 
-/** Extracts the national digits from a stored value (E.164 "+52…" or legacy). */
+/**
+ * The national digits shown in the field. The stored value is always E.164
+ * ("+52" + up to 10 digits, produced by handleChange), so the prefix is
+ * stripped literally — not by digit count, which broke as the user deleted
+ * down to a few digits. Legacy values without the "+52" prefix pass through.
+ */
 function toNationalDigits(value: string, maxDigits: number): string {
-  const digits = (value ?? '').replace(/\D/g, '');
-  const national =
-    digits.startsWith(MX_CODE) && digits.length > maxDigits
-      ? digits.slice(MX_CODE.length)
-      : digits;
-  return national.slice(0, maxDigits);
+  const raw = (value ?? '').trim();
+  const withoutPrefix = raw.startsWith(E164_PREFIX) ? raw.slice(E164_PREFIX.length) : raw;
+  return withoutPrefix.replace(/\D/g, '').slice(0, maxDigits);
 }
 
 /**
@@ -59,7 +62,7 @@ export default function CustomPhoneInput({
       helperText={helperText}
       disabled={disabled}
       maxLength={maxDigits}
-      InputProps={{
+      inputSlotProps={{
         startAdornment: <InputAdornment position="start">+{MX_CODE}</InputAdornment>,
       }}
     />
