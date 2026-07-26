@@ -71,7 +71,9 @@ export function useUsersApp() {
   const filters = toColumnFilters(columnFilters);
   const filtersKey = JSON.stringify(filters);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Rebuilt every render, so it must NOT go in a dependency array as-is — the
+  // effects below depend on its primitive parts (page, size, search, filtersKey)
+  // instead, which is what actually changes.
   const query = {
     page: pagination.pageIndex,
     size: pagination.pageSize,
@@ -83,7 +85,8 @@ export function useUsersApp() {
     const promise = dispatch(fetchUsers(query));
 
     return () => promise.abort();
-  }, [dispatch, query.page, query.size, query.search, filtersKey, query]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, query.page, query.size, query.search, filtersKey]);
 
   // Clear the search, filters and page when leaving the listing, so coming back
   // from create/edit starts fresh instead of keeping the old filters applied.
@@ -91,7 +94,8 @@ export function useUsersApp() {
 
   const reload = useCallback(
     () => dispatch(fetchUsers(query)),
-    [dispatch, query],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [dispatch, query.page, query.size, query.search, filtersKey],
   );
 
   const handleColumnFiltersChange = (updater: any) => {
