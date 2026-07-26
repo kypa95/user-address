@@ -1,5 +1,21 @@
-import { MaterialReactTable, useMaterialReactTable } from 'material-react-table';
-import { useTheme, useMediaQuery } from '@mui/material';
+import {
+  MaterialReactTable,
+  useMaterialReactTable,
+  MRT_ToggleFiltersButton,
+  MRT_ToggleDensePaddingButton,
+  MRT_ToggleFullScreenButton,
+} from 'material-react-table';
+import { MRT_Localization_ES } from 'material-react-table/locales/es';
+import CustomShowHideColumnsButton from './CustomShowHideColumnsButton';
+import {
+  useTheme,
+  useMediaQuery,
+  IconButton,
+  InputAdornment,
+  Tooltip,
+} from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import CloseIcon from '@mui/icons-material/Close';
 import type { ReactNode } from 'react';
 
 interface PaginationState {
@@ -28,6 +44,35 @@ interface CustomTableProps {
   columnFilters?: { id: string; value: unknown }[];
   onColumnFiltersChange?: (updater: any) => void;
   errorMessage?: string | null;
+
+  // Each feature is its own switch, all on by default. A list the user is
+  // composing rather than exploring can turn off the ones it does not need.
+
+  /** The whole top bar. Turning it off hides the search and every button in it. */
+  enableTopToolbar?: boolean;
+  /** The search box. */
+  enableGlobalFilter?: boolean;
+  /** The per-column filter inputs and the button that reveals them. */
+  enableColumnFilters?: boolean;
+  /**
+   * The ⋮ menu on each column header. Defaults to `enableColumnFilters`: the
+   * menu only keeps the two filter entries, so without filters it would open
+   * empty.
+   */
+  enableColumnActions?: boolean;
+  /** The show/hide columns button. */
+  enableHiding?: boolean;
+  /** The density toggle. */
+  enableDensityToggle?: boolean;
+  /** The fullscreen toggle. */
+  enableFullScreenToggle?: boolean;
+  /** Freezing the first columns while scrolling sideways. */
+  enableColumnPinning?: boolean;
+  /**
+   * Click-to-sort on the headers. Off by default under `manualServerSide`,
+   * where sorting would only reorder the page already on screen.
+   */
+  enableSorting?: boolean;
 }
 
 /**
@@ -50,6 +95,15 @@ export default function CustomTable({
   columnFilters,
   onColumnFiltersChange,
   errorMessage,
+  enableTopToolbar = true,
+  enableGlobalFilter = true,
+  enableColumnFilters = true,
+  enableColumnActions = enableColumnFilters,
+  enableHiding = true,
+  enableDensityToggle = true,
+  enableFullScreenToggle = true,
+  enableColumnPinning = true,
+  enableSorting = !manualServerSide,
 }: CustomTableProps) {
   const hasRowActions = Boolean(renderRowActionMenuItems);
 
@@ -57,9 +111,10 @@ export default function CustomTable({
   // column would eat the whole viewport, so it is disabled there.
   const theme = useTheme();
   const isMdUp = useMediaQuery(theme.breakpoints.up('md'));
-  const pinnedLeft = isMdUp
-    ? columns.slice(0, 2).map((column) => column.accessorKey ?? column.id)
-    : [];
+  const pinnedLeft =
+    isMdUp && enableColumnPinning
+      ? columns.slice(0, 2).map((column) => column.accessorKey ?? column.id)
+      : [];
 
   const tableState: Record<string, unknown> = {
     isLoading,
@@ -76,10 +131,18 @@ export default function CustomTable({
     columns,
     data,
     state: tableState,
+    // The search box stays open instead of hiding behind the magnifier.
+    initialState: { showGlobalFilter: true },
     enablePagination: true,
-    enableGlobalFilter: true,
-    enableColumnFilters: true,
-    enableColumnPinning: true,
+    enableTopToolbar,
+    enableGlobalFilter,
+    enableColumnFilters,
+    enableColumnActions,
+    enableHiding,
+    enableDensityToggle,
+    enableFullScreenToggle,
+    enableColumnPinning,
+    enableSorting,
     enableRowActions: hasRowActions,
     renderRowActionMenuItems: hasRowActions ? renderRowActionMenuItems : undefined,
     positionActionsColumn: 'last',
@@ -89,19 +152,73 @@ export default function CustomTable({
     onPaginationChange,
     onGlobalFilterChange,
     onColumnFiltersChange,
-    // Sorting a single server page would order only those rows, which reads as
-    // if the whole table were sorted.
-    enableSorting: !manualServerSide,
+    // Same toolbar as MRT's default, with our own show/hide button so the
+    // "Desanclar todo" action never appears. Overriding this means each button
+    // has to honour its own flag, which MRT would otherwise do for us.
+    renderToolbarInternalActions: ({ table: instance }: any) => (
+      <>
+        {/* No toggle for the search: it is always on screen, so the button
+            would only serve to hide it. */}
+        {enableColumnFilters && <MRT_ToggleFiltersButton table={instance} />}
+        {enableHiding && <CustomShowHideColumnsButton table={instance} />}
+        {enableDensityToggle && <MRT_ToggleDensePaddingButton table={instance} />}
+        {enableFullScreenToggle && <MRT_ToggleFullScreenButton table={instance} />}
+      </>
+    ),
+    // The column menu ships with sort, hide, group and pin entries. Only the two
+    // filter ones are kept, matched by label instead of by position: MRT keys
+    // those items by index, and an index moves whenever the library adds one.
+    renderColumnActionsMenuItems: ({ internalColumnMenuItems, column }: any) => {
+      const header = String(column.columnDef.header ?? '');
+      const keep = [
+        MRT_Localization_ES.clearFilter,
+        MRT_Localization_ES.filterByColumn?.replace('{column}', header),
+      ];
+
+      return internalColumnMenuItems.filter((item: any) =>
+        keep.includes(item?.props?.label),
+      );
+    },
     muiToolbarAlertBannerProps: errorMessage
       ? { color: 'error', children: errorMessage }
       : undefined,
     localization: {
-      actions: 'Acciones',
-      search: 'Buscar',
-      rowsPerPage: 'Filas por página',
+      ...MRT_Localization_ES,
+      // Shorter than the pack's defaults, which wrap in narrow toolbars.
       noRecordsToDisplay: 'Sin registros',
+      rowsPerPage: 'Filas por página',
     },
-    muiSearchTextFieldProps: { placeholder: 'Buscar' },
+    // MRT builds both adornments through the deprecated `InputProps`, which MUI
+    // v9 replaced with `slotProps.input`. Declaring them here keeps the
+    // magnifier and the clear button on screen regardless.
+    muiSearchTextFieldProps: ({ table: instance }: any) => ({
+      placeholder: 'Buscar',
+      slotProps: {
+        input: {
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon fontSize="small" />
+            </InputAdornment>
+          ),
+          endAdornment: (
+            <InputAdornment position="end">
+              <Tooltip title={MRT_Localization_ES.clearSearch ?? ''}>
+                <span>
+                  <IconButton
+                    aria-label={MRT_Localization_ES.clearSearch}
+                    size="small"
+                    disabled={!instance.getState().globalFilter}
+                    onClick={() => instance.setGlobalFilter(undefined)}
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            </InputAdornment>
+          ),
+        },
+      },
+    }),
     muiTablePaperProps: { id },
   } as any);
 

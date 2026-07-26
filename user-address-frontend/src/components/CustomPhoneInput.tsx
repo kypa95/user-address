@@ -1,43 +1,6 @@
-import { forwardRef, useState } from 'react';
-import { TextField } from '@mui/material';
-import PhoneInput, { getCountryCallingCode } from 'react-phone-number-input';
-import type { Country } from 'react-phone-number-input';
-import 'react-phone-number-input/style.css';
-import '../css/CustomPhoneInput.css';
-
-interface InnerInputProps {
-  value?: string;
-  label?: string;
-  error?: boolean;
-  helperText?: string;
-  disabled?: boolean;
-}
-
-/** getCountryCallingCode throws on an unknown country; never let that crash the field. */
-function safeCallingCode(country: Country): string {
-  try {
-    return getCountryCallingCode(country);
-  } catch {
-    return '';
-  }
-}
-
-const MuiPhoneField = forwardRef<HTMLInputElement, InnerInputProps>(
-  function MuiPhoneField({ label, error, helperText, ...rest }, ref) {
-    return (
-      <TextField
-        {...rest}
-        inputRef={ref}
-        fullWidth
-        variant="outlined"
-        margin="normal"
-        label={label}
-        error={error}
-        helperText={helperText}
-      />
-    );
-  },
-);
+import { InputAdornment } from '@mui/material';
+import type { ChangeEvent } from 'react';
+import CustomTextField from './CustomTextField';
 
 interface CustomPhoneInputProps {
   id?: string;
@@ -47,17 +10,27 @@ interface CustomPhoneInputProps {
   error?: string;
   helperText?: string;
   disabled?: boolean;
-  defaultCountry?: Country;
   maxDigits?: number;
 }
 
+/** Mexican calling code; the field only registers Mexican numbers. */
+const MX_CODE = '52';
+
+/** Extracts the national digits from a stored value (E.164 "+52…" or legacy). */
+function toNationalDigits(value: string, maxDigits: number): string {
+  const digits = (value ?? '').replace(/\D/g, '');
+  const national =
+    digits.startsWith(MX_CODE) && digits.length > maxDigits
+      ? digits.slice(MX_CODE.length)
+      : digits;
+  return national.slice(0, maxDigits);
+}
+
 /**
- * Phone field built on react-phone-number-input: country dropdown, formatting
- * as you type, and an E.164 value ready for the backend.
- *
- * Declares every prop it accepts explicitly, like the other Custom components.
- * The object spread inside `MuiPhoneField` is the library's own input props,
- * which must be forwarded as-is.
+ * Phone field for Mexican numbers. Fixed "+52" prefix, digits only, capped at
+ * `maxDigits` (10), so it lines up with the other text fields and never accepts
+ * more than the required characters. The value handed back is E.164
+ * ("+525512345678"), ready for the backend.
  */
 export default function CustomPhoneInput({
   id,
@@ -67,46 +40,28 @@ export default function CustomPhoneInput({
   error = '',
   helperText = '',
   disabled = false,
-  defaultCountry = 'MX',
   maxDigits = 10,
 }: CustomPhoneInputProps) {
-  const hasError = Boolean(error);
-  const [country, setCountry] = useState<Country>(defaultCountry);
+  const national = toNationalDigits(value, maxDigits);
 
-  const handleChange = (next?: string) => {
-    const nextValue = next ?? '';
-
-    if (nextValue && maxDigits) {
-      const digits = nextValue.replace(/\D/g, '');
-      const callingCode = country ? safeCallingCode(country) : '';
-      const national =
-        callingCode && digits.startsWith(callingCode)
-          ? digits.slice(callingCode.length)
-          : digits;
-      if (national.length > maxDigits) return;
-    }
-
-    onChange(nextValue);
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const digits = event.target.value.replace(/\D/g, '').slice(0, maxDigits);
+    onChange(digits ? `+${MX_CODE}${digits}` : '');
   };
 
   return (
-    <PhoneInput
+    <CustomTextField
       id={id}
-      countryCallingCodeEditable={false}
-      defaultCountry={defaultCountry}
-      countries={['MX']}
-      addInternationalOption={false}
-      value={value || undefined}
+      label={label}
+      value={national}
       onChange={handleChange}
-      onCountryChange={(next) => next && setCountry(next)}
+      error={error}
+      helperText={helperText}
       disabled={disabled}
-      inputComponent={MuiPhoneField}
-      numberInputProps={{
-        label,
-        error: hasError,
-        helperText: hasError ? error : helperText,
+      maxLength={maxDigits}
+      InputProps={{
+        startAdornment: <InputAdornment position="start">+{MX_CODE}</InputAdornment>,
       }}
-      className="custom-phone-input"
     />
   );
 }

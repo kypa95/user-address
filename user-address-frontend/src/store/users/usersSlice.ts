@@ -1,15 +1,10 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { fetchUsers, fetchUserById, saveUser } from './usersThunks';
+import type { ColumnFilter } from '../columnFilters';
 import type { RootState } from '../index';
 import type { User } from '../../types/user';
 
 type Status = 'idle' | 'loading' | 'succeeded' | 'failed';
-
-/** One per-column filter, keyed by the column's accessor. */
-export interface ColumnFilter {
-  id: string;
-  value: unknown;
-}
 
 interface UsersState {
   items: User[];

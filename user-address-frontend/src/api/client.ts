@@ -1,5 +1,6 @@
 import { startRequest, endRequest } from './requestTracker';
 import { HTTP_METHOD, type HttpMethod } from './httpMethods';
+import { messageForError } from './errorMessages';
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? '/api';
 
@@ -63,7 +64,15 @@ export async function apiRequest<T = unknown>(
     const payload: ApiEnvelope<T> | null = await response.json().catch(() => null);
 
     if (!response.ok) {
-      throw new ApiError(payload?.message ?? `Error ${response.status}`, {
+      // The backend's own message is English and meant for logs; the user gets
+      // the Spanish text mapped from the business code. It is only used as a
+      // fallback when neither the code nor the status is mapped.
+      const message =
+        messageForError(payload?.code, response.status) ??
+        payload?.message ??
+        `Error ${response.status}`;
+
+      throw new ApiError(message, {
         status: response.status,
         code: payload?.code,
         url: payload?.url,

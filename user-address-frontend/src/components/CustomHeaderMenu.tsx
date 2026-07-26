@@ -24,7 +24,7 @@ export default function CustomHeaderMenu() {
   const isActive = (path) => pathname === path;
 
   return (
-    <AppBar position="static" color="default" elevation={1}>
+    <AppBar position="sticky" color="default" elevation={1}>
       <Toolbar className="header-toolbar">
         <Box className="header-brand">
           <BrandIcon

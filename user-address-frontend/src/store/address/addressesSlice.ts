@@ -2,6 +2,7 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { fetchAddressesByUser } from './addressesThunks';
 import { removeUser } from '../users/usersThunks';
 import type { RootState } from '../index';
+import type { ColumnFilter } from '../columnFilters';
 import type { Address } from '../../types/address';
 
 type Status = 'idle' | 'loading' | 'succeeded' | 'failed';
@@ -11,6 +12,7 @@ interface AddressesState {
   total: number;
   pagination: { pageIndex: number; pageSize: number };
   search: string;
+  columnFilters: ColumnFilter[];
   ownerId: string | null;
   status: Status;
   error: string | null;
@@ -22,6 +24,7 @@ const initialState: AddressesState = {
   total: 0,
   pagination: { pageIndex: 0, pageSize: 10 },
   search: '',
+  columnFilters: [],
   ownerId: null,
   status: 'idle',
   error: null,
@@ -40,6 +43,10 @@ const addressesSlice = createSlice({
       action: PayloadAction<{ pageIndex: number; pageSize: number }>,
     ) {
       state.pagination = action.payload;
+    },
+    addressColumnFiltersChanged(state, action: PayloadAction<ColumnFilter[]>) {
+      state.columnFilters = action.payload;
+      state.pagination.pageIndex = 0;
     },
     addressSearchChanged(state, action: PayloadAction<string>) {
       state.search = action.payload ?? '';
@@ -90,13 +97,20 @@ const addressesSlice = createSlice({
   },
 });
 
-export const { addressesCleared, addressPaginationChanged, addressSearchChanged } =
+export const {
+  addressesCleared,
+  addressPaginationChanged,
+  addressSearchChanged,
+  addressColumnFiltersChanged,
+} =
   addressesSlice.actions;
 
 export const selectAddresses = (state: RootState) => state.addresses.items;
 export const selectAddressesTotal = (state: RootState) => state.addresses.total;
 export const selectAddressesPagination = (state: RootState) => state.addresses.pagination;
 export const selectAddressesSearch = (state: RootState) => state.addresses.search;
+export const selectAddressesColumnFilters = (state: RootState) =>
+  state.addresses.columnFilters;
 export const selectAddressesLoading = (state: RootState) =>
   state.addresses.status === 'loading';
 export const selectAddressesError = (state: RootState) => state.addresses.error;

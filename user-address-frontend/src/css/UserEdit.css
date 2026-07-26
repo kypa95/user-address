@@ -1,0 +1,52 @@
+.user-edit-page {
+  padding: 24px;
+}
+
+.user-edit-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.user-edit-loading {
+  display: flex;
+  justify-content: center;
+  padding: 64px 24px;
+}
+
+.tab-form {
+  width: 100%;
+}
+
+.tab-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.step-hint {
+  height: auto;
+  margin-top: 16px;
+  padding: 6px 0;
+}
+
+.step-hint .MuiChip-label {
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.addresses-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 600px) {
+  .user-edit-page {
+    padding: 16px;
+  }
+}

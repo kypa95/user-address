@@ -11,6 +11,7 @@ interface CustomTextFieldProps {
   helperText?: string;
   autoComplete?: string;
   autoFocus?: boolean;
+  disabled?: boolean;
   /** Character cap, mirroring the backend `@Size(max = ...)` for the field. */
   maxLength?: number;
   // MUI Input props (e.g. an end adornment). Kept loose to stay compatible
@@ -32,6 +33,7 @@ export default function CustomTextField({
   helperText = '',
   autoComplete,
   autoFocus = false,
+  disabled = false,
   maxLength,
   InputProps,
 }: CustomTextFieldProps) {
@@ -50,6 +52,7 @@ export default function CustomTextField({
       helperText={hasError ? error : helperText}
       autoComplete={autoComplete}
       autoFocus={autoFocus}
+      disabled={disabled}
       slotProps={maxLength ? { htmlInput: { maxLength } } : undefined}
       {...(InputProps ? ({ InputProps } as Record<string, unknown>) : {})}
     />

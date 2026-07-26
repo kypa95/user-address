@@ -29,7 +29,18 @@ export const fetchUserById = createAsyncThunk<User, string, { rejectValue: strin
   },
 );
 
-export const saveNewUser = createAsyncThunk<User, FormValues, { rejectValue: string }>(
+/**
+ * A new user, optionally with the addresses created in the same transaction.
+ *
+ * The index signature admits the address list, since intersecting `FormValues`
+ * would force it to be a string like every other field.
+ */
+export interface NewUserPayload {
+  [field: string]: string | FormValues[] | undefined;
+  addresses?: FormValues[];
+}
+
+export const saveNewUser = createAsyncThunk<User, NewUserPayload, { rejectValue: string }>(
   'users/create',
   async (user, { rejectWithValue }) => {
     try {

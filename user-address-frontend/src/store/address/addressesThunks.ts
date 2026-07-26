@@ -6,6 +6,7 @@ import {
   deleteAddress,
 } from '../../api/addresses';
 import { toMessage } from '../thunkError';
+import type { ColumnFilters } from '../../api/params';
 import type { Address } from '../../types/address';
 import type { Page } from '../../types/page';
 import type { FormValues } from '../../constants/forms';
@@ -17,14 +18,15 @@ import type { FormValues } from '../../constants/forms';
 
 export const fetchAddressesByUser = createAsyncThunk<
   { userId: string; page: Page<Address> },
-  { userId: string; page: number; size: number; search: string },
+  { userId: string; page: number; size: number; search: string; filters?: ColumnFilters },
   { rejectValue: string }
->('addresses/fetchByUser', async ({ userId, page, size, search }, { rejectWithValue, signal }) => {
+>('addresses/fetchByUser', async ({ userId, page, size, search, filters }, { rejectWithValue, signal }) => {
   try {
     const result = (await listAddressesByUser(userId, {
       page,
       size,
       search,
+      filters,
       signal,
     })) as Page<Address>;
     return { userId, page: result };
