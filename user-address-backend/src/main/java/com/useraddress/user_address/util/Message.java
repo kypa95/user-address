@@ -15,28 +15,26 @@ public class Message {
     public static final String OBJECT_CREATED = "%s was created successfully.";
     public static final String OBJECT_UPDATED = "%s was updated successfully.";
     public static final String OBJECT_DELETED = "%s was deleted successfully.";
-    public static final String OBJECT_NOT_EXISTS = "%s not exists.";
-    public static final String OBJECT_ALREADY_EXISTS = "%s already exists.";
     public static final String OBJECT_WITH_ID_EXISTS = "%s with ID: %s exists.";
     public static final String OBJECT_WITH_ID_NOT_EXISTS = "%s with ID: %s not exists.";
-    public static final String OBJECT_WITH_OBJECT_ALREADY_EXISTS = "%s with %s: %s already exists.";
-    public static final String OBJECT_MUST_NOT_BE_NULL = "%s must not be null.";
 
     // LIST MESSAGES //
-    public static final String LIST_OBJECT = "List with objects of %s.";
     public static final String LIST_OBJECT_WITH_OBJECT_ID = "List with objects of %s with %s ID: %s.";
-    public static final String LIST_PAGEABLE = "List with objects of %s, page: %s, item per page: %s.";
+   public static final String LIST_PAGEABLE = "List with objects of %s, page: %s, item per page: %s.";
 
     // USER MESSAGES //
-    public static final String USER_ID_CAN_NOT_BE_NULL = "User ID can not be null.";
     public static final String USER_CURP_ALREADY_EXISTS = "The CURP: %s is already registered by another user.";
     public static final String USER_RFC_ALREADY_EXISTS = "The RFC: %s is already registered by another user.";
     public static final String USER_EMAIL_ALREADY_EXISTS = "The email: %s is already registered by another user.";
-    public static final String USER_DELETED_WITH_ADDRESSES = "User was deleted successfully with %s address(es) associated.";
 
-    // ADDRESS MESSAGES //
-    public static final String ADDRESS_DOES_NOT_BELONG_TO_USER = "The address does not belong to the user with ID: %s.";
-    public static final String ADDRESS_USER_ID_CAN_NOT_BE_NULL = "Address must be associated to a user, the user ID can not be null.";
+    // DASHBOARD MESSAGES //
+    public static final String DASHBOARD_SUMMARY = "Dashboard summary.";
+
+    // EXPORT MESSAGES //
+    public static final String REPORT_GENERATION_FAILED = "The %s report could not be generated.";
+    public static final String EXPORT_FILE_NAME = "usuarios_%s.xlsx";
+    /** CURP identifies the owner, so exports of different users never collide. */
+    public static final String EXPORT_ADDRESSES_FILE_NAME = "direcciones_%s_%s.xlsx";
 
     // SYSTEM MESSAGES //
     public static final String METHOD_NOT_ALLOWED = "The method: %s is not allowed for this endpoint.";
