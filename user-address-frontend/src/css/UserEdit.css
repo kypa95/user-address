@@ -9,12 +9,6 @@
   margin-bottom: 16px;
 }
 
-.user-edit-loading {
-  display: flex;
-  justify-content: center;
-  padding: 64px 24px;
-}
-
 .tab-form {
   width: 100%;
 }

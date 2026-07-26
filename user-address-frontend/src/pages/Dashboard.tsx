@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Box, Paper, Typography, CircularProgress, Avatar } from '@mui/material';
+import { Box, Paper, Typography, Avatar } from '@mui/material';
 import GroupsIcon from '@mui/icons-material/Groups';
 import HomeIcon from '@mui/icons-material/Home';
 import PersonOffIcon from '@mui/icons-material/PersonOff';
@@ -44,11 +44,9 @@ export default function Dashboard() {
           </Typography>
         </Box>
 
-        {loading ? (
-          <Box className="dashboard-loading">
-            <CircularProgress />
-          </Box>
-        ) : error ? (
+        {/* The global CustomLoader overlay covers the fetch; render nothing
+            underneath until the data is in, so there is no second spinner. */}
+        {loading ? null : error ? (
           <Paper className="dashboard-panel" elevation={0}>
             <Typography color="error">{error}</Typography>
           </Paper>

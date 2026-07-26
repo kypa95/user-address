@@ -1,4 +1,4 @@
-import { Box, Typography, Stack, Divider, CircularProgress } from '@mui/material';
+import { Box, Typography, Stack, Divider } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import Edit from '@mui/icons-material/Edit';
 import Delete from '@mui/icons-material/Delete';
@@ -160,11 +160,8 @@ export default function Users() {
                 {exportingAddresses ? 'Exportando…' : 'Exportar'}
               </CustomButton>
             </Box>
-            {detailLoading ? (
-              <Box className="detail-loading">
-                <CircularProgress size={28} />
-              </Box>
-            ) : (
+            {/* Global overlay covers the fetch; no local spinner here. */}
+            {detailLoading ? null : (
               <CustomTable
                 id="tbl_use_detail_addresses"
                 columns={ADDRESS_COLUMNS}

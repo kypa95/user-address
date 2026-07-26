@@ -1,4 +1,4 @@
-import { Box, Typography, CircularProgress, IconButton } from '@mui/material';
+import { Box, Typography, IconButton } from '@mui/material';
 import Edit from '@mui/icons-material/Edit';
 import Delete from '@mui/icons-material/Delete';
 import ArrowBack from '@mui/icons-material/ArrowBack';
@@ -77,13 +77,13 @@ export default function UserEdit() {
     />,
   ];
 
+  // The global CustomLoader overlay already shows during the fetch, so just
+  // hold the header until the user is in — no second spinner in the content.
   if (loading && !currentUser) {
     return (
       <>
         <CustomHeaderMenu />
-        <Box className="user-edit-page user-edit-loading">
-          <CircularProgress />
-        </Box>
+        <Box className="user-edit-page" />
       </>
     );
   }

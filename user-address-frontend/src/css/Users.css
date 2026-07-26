@@ -17,12 +17,6 @@
   flex-wrap: wrap;
 }
 
-.detail-loading {
-  display: flex;
-  justify-content: center;
-  padding: 24px;
-}
-
 .detail-row {
   display: flex;
   align-items: baseline;

@@ -4,12 +4,6 @@
   margin: 0 auto;
 }
 
-.dashboard-loading {
-  display: flex;
-  justify-content: center;
-  padding: 64px 24px;
-}
-
 /* KPI cards */
 .dashboard-stats {
   display: grid;
