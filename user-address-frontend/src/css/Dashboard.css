@@ -13,7 +13,7 @@
 /* KPI cards */
 .dashboard-stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   margin-bottom: 16px;
 }
@@ -35,7 +35,7 @@
 /* Chart row */
 .dashboard-charts {
   display: grid;
-  grid-template-columns: 1fr 1.6fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
   gap: 16px;
   margin-bottom: 16px;
 }
@@ -44,15 +44,21 @@
   padding: 24px;
   border-radius: 16px;
   border: 1px solid rgba(128, 128, 128, 0.16);
+  /* Chart.js writes the canvas width inline, so without this the panel takes
+     the widest size the chart ever had and the page scrolls sideways. */
+  min-width: 0;
 }
 
-.dashboard-doughnut-canvas {
-  height: 260px;
-  display: flex;
-  justify-content: center;
-}
-
+/*
+ * Chart.js only resizes against a positioned parent with a fixed height, which
+ * is what `maintainAspectRatio: false` expects. Width stays fluid so the canvas
+ * follows the column instead of dictating it.
+ */
+.dashboard-doughnut-canvas,
 .dashboard-bar-canvas {
+  position: relative;
+  width: 100%;
+  min-width: 0;
   height: 260px;
 }
 
@@ -87,7 +93,12 @@
 
 @media (max-width: 900px) {
   .dashboard-charts {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Three cards side by side wrap their labels at this width. */
+  .dashboard-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -97,6 +108,16 @@
   }
 
   .dashboard-stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboard-panel {
+    padding: 16px;
+  }
+
+  /* A bar chart 260px tall eats most of a phone screen. */
+  .dashboard-doughnut-canvas,
+  .dashboard-bar-canvas {
+    height: 220px;
   }
 }
