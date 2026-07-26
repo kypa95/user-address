@@ -1,23 +1,9 @@
 import { apiRequest } from './client';
 import { downloadFile } from './download';
+import { HTTP_METHOD } from './httpMethods';
 import type { Address } from '../types/address';
-
-export interface AddressPage {
-  content: Address[];
-  page: number;
-  size: number;
-  totalElements: number;
-  totalPages: number;
-  first: boolean;
-  last: boolean;
-}
-
-interface ListParams {
-  page?: number;
-  size?: number;
-  search?: string;
-  signal?: AbortSignal;
-}
+import type { Page } from '../types/page';
+import type { ListParams } from './params';
 
 /** Paginated addresses of a user. `search` matches any visible column. */
 export function listAddressesByUser(
@@ -28,24 +14,24 @@ export function listAddressesByUser(
   const term = search.trim();
   if (term) params.set('search', term);
 
-  return apiRequest<AddressPage>(`/users/${userId}/addresses?${params.toString()}`, {
+  return apiRequest<Page<Address>>(`/users/${userId}/addresses?${params.toString()}`, {
     signal,
   });
 }
 
 export function createAddress(userId: string, address: Record<string, unknown>) {
   return apiRequest<Address>(`/users/${userId}/addresses`, {
-    method: 'POST',
+    method: HTTP_METHOD.POST,
     body: address,
   });
 }
 
 export function updateAddress(id: string, address: Record<string, unknown>) {
-  return apiRequest<Address>(`/addresses/${id}`, { method: 'PUT', body: address });
+  return apiRequest<Address>(`/addresses/${id}`, { method: HTTP_METHOD.PUT, body: address });
 }
 
 export function deleteAddress(id: string) {
-  return apiRequest<void>(`/addresses/${id}`, { method: 'DELETE' });
+  return apiRequest<void>(`/addresses/${id}`, { method: HTTP_METHOD.DELETE });
 }
 
 /** Downloads a user's addresses as an .xlsx, honoring the current search term. */

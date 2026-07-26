@@ -53,6 +53,11 @@ export default function ThemeModeProvider({ children }: { children: ReactNode })
                 divider: 'rgba(201, 220, 232, 0.16)',
               }) as PaletteOptions,
         shape: { borderRadius: 12 },
+        typography: {
+          h4: { fontWeight: 700 },
+          h6: { fontWeight: 700 },
+          subtitle1: { fontWeight: 700 },
+        },
       }),
     [mode],
   );

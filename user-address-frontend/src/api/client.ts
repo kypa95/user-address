@@ -1,4 +1,5 @@
 import { startRequest, endRequest } from './requestTracker';
+import { HTTP_METHOD, type HttpMethod } from './httpMethods';
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? '/api';
 
@@ -23,7 +24,7 @@ export class ApiError extends Error {
 }
 
 export interface ApiRequestOptions {
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  method?: HttpMethod;
   body?: unknown;
   signal?: AbortSignal;
 }
@@ -41,7 +42,7 @@ interface ApiEnvelope<T> {
  */
 export async function apiRequest<T = unknown>(
   path: string,
-  { method = 'GET', body, signal }: ApiRequestOptions = {},
+  { method = HTTP_METHOD.GET, body, signal }: ApiRequestOptions = {},
 ): Promise<T | null> {
   startRequest();
   try {

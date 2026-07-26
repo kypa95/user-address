@@ -1,17 +1,18 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { listUsers, getUser, createUser, updateUser, deleteUser } from '../../api/users';
 import { toMessage } from '../thunkError';
-import type { UserPage } from '../../api/users';
+import type { ColumnFilters } from '../../api/params';
 import type { User } from '../../types/user';
-import type { FormValues } from '../../constants/formFields';
+import type { Page } from '../../types/page';
+import type { FormValues } from '../../constants/forms';
 
 export const fetchUsers = createAsyncThunk<
-  UserPage,
-  { page: number; size: number; search: string },
+  Page<User>,
+  { page: number; size: number; search: string; filters?: ColumnFilters },
   { rejectValue: string }
->('users/fetchAll', async ({ page, size, search }, { rejectWithValue, signal }) => {
+>('users/fetchAll', async ({ page, size, search, filters }, { rejectWithValue, signal }) => {
   try {
-    return (await listUsers({ page, size, search, signal })) as UserPage;
+    return (await listUsers({ page, size, search, filters, signal })) as Page<User>;
   } catch (error) {
     return toMessage(error, rejectWithValue);
   }

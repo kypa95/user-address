@@ -1,5 +1,3 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Paper,
@@ -13,31 +11,20 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import CustomTextField from '../components/CustomTextField';
 import CustomButton from '../components/CustomButton';
 import ThemeToggle from '../components/ThemeToggle';
-import { useAuth } from '../context/AuthContext';
-import { validateEmail, validatePassword } from '../utils/validators';
-import './Login.css';
+import { useLoginApp } from './LoginApp';
+import '../css/Login.css';
 
 export default function Login() {
-  const navigate = useNavigate();
-  const { login } = useAuth();
-
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState({ email: '', password: '' });
-  const [showPassword, setShowPassword] = useState(false);
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-
-    const emailError = validateEmail(email);
-    const passwordError = validatePassword(password);
-    setErrors({ email: emailError, password: passwordError });
-
-    if (emailError || passwordError) return;
-
-    login(email.trim());
-    navigate('/dashboard', { replace: true });
-  };
+  const {
+    email,
+    password,
+    errors,
+    showPassword,
+    handleEmailChange,
+    handlePasswordChange,
+    toggleShowPassword,
+    handleSubmit,
+  } = useLoginApp();
 
   return (
     <Box className="login-page">
@@ -46,8 +33,8 @@ export default function Login() {
       </Box>
 
       <Paper className="login-card" elevation={4}>
-        <Stack spacing={1} mb={2}>
-          <Typography variant="h4" fontWeight={700}>
+        <Stack spacing={1} sx={{ mb: 2 }}>
+          <Typography variant="h4">
             Iniciar sesión
           </Typography>
           <Typography variant="body2" color="text.secondary">
@@ -57,27 +44,29 @@ export default function Login() {
 
         <Box component="form" onSubmit={handleSubmit} noValidate>
           <CustomTextField
+            id="txt_log_email"
             label="Correo electrónico"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={handleEmailChange}
             error={errors.email}
             autoComplete="email"
             autoFocus
           />
 
           <CustomTextField
+            id="txt_log_password"
             label="Contraseña"
             type={showPassword ? 'text' : 'password'}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={handlePasswordChange}
             error={errors.password}
             autoComplete="current-password"
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton
-                    onClick={() => setShowPassword((v) => !v)}
+                    onClick={toggleShowPassword}
                     edge="end"
                     aria-label="mostrar u ocultar contraseña"
                   >
@@ -88,7 +77,9 @@ export default function Login() {
             }}
           />
 
-          <CustomButton type="submit">Entrar</CustomButton>
+          <CustomButton id="btn_log_login" type="submit">
+            Entrar
+          </CustomButton>
         </Box>
       </Paper>
     </Box>

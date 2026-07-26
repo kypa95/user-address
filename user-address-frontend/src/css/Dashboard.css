@@ -80,6 +80,11 @@
   flex-direction: column;
 }
 
+/* Semibold, not the 700 the theme gives headings: this is a row, not a title. */
+.dashboard-latest-name {
+  font-weight: 600;
+}
+
 @media (max-width: 900px) {
   .dashboard-charts {
     grid-template-columns: 1fr;

@@ -1,0 +1,7 @@
+.error-boundary {
+  padding: 32px;
+}
+
+.error-boundary-message {
+  white-space: pre-wrap;
+}

@@ -36,7 +36,7 @@ export default function Dashboard() {
 
       <Box className="dashboard-page">
         <Box sx={{ mb: 3 }}>
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>
+          <Typography variant="h4">
             Dashboard
           </Typography>
           <Typography variant="body2" color="text.secondary">
@@ -61,7 +61,7 @@ export default function Dashboard() {
                     {STAT_ICONS[stat.key]}
                   </Avatar>
                   <Box>
-                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                    <Typography variant="h4">
                       {stat.value}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
@@ -74,7 +74,7 @@ export default function Dashboard() {
 
             <Box className="dashboard-charts">
               <Paper className="dashboard-panel" elevation={0}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 700 }} gutterBottom>
+                <Typography variant="subtitle1" gutterBottom>
                   Cobertura de direcciones
                 </Typography>
                 {totalUsers > 0 ? (
@@ -87,7 +87,7 @@ export default function Dashboard() {
               </Paper>
 
               <Paper className="dashboard-panel" elevation={0}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 700 }} gutterBottom>
+                <Typography variant="subtitle1" gutterBottom>
                   Usuarios por estado
                 </Typography>
                 {topStates.length > 0 ? (
@@ -101,7 +101,7 @@ export default function Dashboard() {
             </Box>
 
             <Paper className="dashboard-panel" elevation={0}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700 }} gutterBottom>
+              <Typography variant="subtitle1" gutterBottom>
                 Últimos registrados
               </Typography>
               {latestUsers.length > 0 ? (
@@ -111,7 +111,7 @@ export default function Dashboard() {
                       {user.name.charAt(0).toUpperCase()}
                     </Avatar>
                     <Box className="dashboard-latest-info">
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      <Typography variant="body2" className="dashboard-latest-name">
                         {user.name} {user.lastName}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">

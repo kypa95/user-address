@@ -4,11 +4,11 @@ import {
   createAddress,
   updateAddress,
   deleteAddress,
-  type AddressPage,
 } from '../../api/addresses';
 import { toMessage } from '../thunkError';
 import type { Address } from '../../types/address';
-import type { FormValues } from '../../constants/formFields';
+import type { Page } from '../../types/page';
+import type { FormValues } from '../../constants/forms';
 
 /**
  * Async layer of the addresses feature: every call to the backend lives here,
@@ -16,7 +16,7 @@ import type { FormValues } from '../../constants/formFields';
  */
 
 export const fetchAddressesByUser = createAsyncThunk<
-  { userId: string; page: AddressPage },
+  { userId: string; page: Page<Address> },
   { userId: string; page: number; size: number; search: string },
   { rejectValue: string }
 >('addresses/fetchByUser', async ({ userId, page, size, search }, { rejectWithValue, signal }) => {
@@ -26,7 +26,7 @@ export const fetchAddressesByUser = createAsyncThunk<
       size,
       search,
       signal,
-    })) as AddressPage;
+    })) as Page<Address>;
     return { userId, page: result };
   } catch (error) {
     return toMessage(error, rejectWithValue);
