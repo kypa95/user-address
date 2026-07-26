@@ -40,11 +40,18 @@ public final class ValidationPatterns {
                     + "[A-Z\\d]{3}$";
 
     /**
-     * Mexican phone number: exactly 10 digits, optionally prefixed with the
-     * country code and written with spaces, dots, dashes or parentheses.
+     * Phone number, in either of two shapes:
+     *
+     * <ul>
+     *   <li>E.164, what the frontend's CustomPhoneInput sends: a plus sign and
+     *       8 to 15 digits, any country — "+525512345678".</li>
+     *   <li>A Mexican national number with separators, kept so rows and API
+     *       clients that predate that field keep validating — "55 1234 5678".</li>
+     * </ul>
      */
     public static final String PHONE_NUMBER =
-            "^(?:\\+?52[\\s.-]?)?(?=(?:\\D*\\d){10}\\D*$)[\\d\\s().-]+$";
+            "^(?:\\+[1-9]\\d{7,14}"
+                    + "|(?:\\+?52[\\s.-]?)?(?=(?:\\D*\\d){10}\\D*$)[\\d\\s().-]+)$";
 
     /**
      * Email. Deliberately permissive on the local part, strict on the shape:

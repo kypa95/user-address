@@ -1,8 +1,12 @@
 package com.useraddress.user_address.address.controller;
 
-import java.util.List;
-
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,11 +15,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.useraddress.user_address.address.dto.AddressRequest;
 import com.useraddress.user_address.address.dto.AddressResponse;
 import com.useraddress.user_address.address.service.AddressService;
+import com.useraddress.user_address.common.dto.ExportFile;
+import com.useraddress.user_address.common.dto.PageResponse;
 import com.useraddress.user_address.helper.response.ResponseHandler;
 import com.useraddress.user_address.helper.response.ResponseWrapper;
 import com.useraddress.user_address.util.Message;
@@ -58,21 +65,61 @@ public class AddressController {
                 addressService.create(userId, request));
     }
 
-    @Operation(summary = "List every address of a user",
-            description = "Returns the complete list, without pagination, ordered by creation date.")
+    /**
+     * Streams the addresses of a user as a spreadsheet. Like the user export,
+     * this endpoint answers with the file itself, not the shared envelope.
+     */
+    @Operation(summary = "Export the addresses of a user to Excel",
+            description = "Returns an .xlsx file with every address of the user. Unlike the rest "
+                    + "of the API, the body is the binary file, not the standard response envelope.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Addresses of the user."),
+            @ApiResponse(responseCode = "200", description = "Spreadsheet generated.",
+                    content = @Content(
+                            mediaType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            schema = @Schema(type = "string", format = "binary"))),
+            @ApiResponse(responseCode = "404", description = "User not found, code 3100.",
+                    content = @Content(schema = @Schema(implementation = ResponseWrapper.class))),
+            @ApiResponse(responseCode = "500", description = "The workbook could not be written, code 2111.",
+                    content = @Content(schema = @Schema(implementation = ResponseWrapper.class)))
+    })
+    @GetMapping(value = "/users/{userId}/addresses/export",
+            produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    public ResponseEntity<byte[]> exportByUser(
+            @Parameter(description = "Identifier of the owner") @PathVariable String userId,
+            @Parameter(description = "Term searched in every visible column", example = "centro")
+            @RequestParam(required = false) String search) {
+
+        ExportFile file = addressService.exportToExcel(userId, search);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.attachment().filename(file.fileName()).build().toString())
+                .contentLength(file.content().length)
+                .body(file.content());
+    }
+
+    @Operation(summary = "List the addresses of a user",
+            description = "Paginated. The optional search parameter matches any visible column "
+                    + "(street, numbers, neighborhood, state, city, postal code, country), "
+                    + "partial and case insensitive.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Page of addresses."),
             @ApiResponse(responseCode = "404", description = "User not found, code 3100.",
                     content = @Content(schema = @Schema(implementation = ResponseWrapper.class)))
     })
     @GetMapping("/users/{userId}/addresses")
-    public ResponseEntity<ResponseWrapper<List<AddressResponse>>> findByUser(
-            @Parameter(description = "Identifier of the owner") @PathVariable String userId) {
+    public ResponseEntity<ResponseWrapper<PageResponse<AddressResponse>>> findByUser(
+            @Parameter(description = "Identifier of the owner") @PathVariable String userId,
+            @Parameter(description = "Term searched in every visible column", example = "centro")
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.ASC) Pageable pageable) {
         return ResponseHandler.wrapSuccessResponse(
                 Message.formatMessage(Message.LIST_OBJECT_WITH_OBJECT_ID, Models.ADDRESS.getValue(),
                         Models.USER.getValue(), userId),
                 HttpStatus.OK,
-                addressService.findByUserId(userId));
+                addressService.findByUserId(userId, search, pageable));
     }
 
     @Operation(summary = "Update an address", description = "The owner of the address never changes.")

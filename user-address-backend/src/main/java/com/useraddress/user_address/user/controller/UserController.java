@@ -1,9 +1,15 @@
 package com.useraddress.user_address.user.controller;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.useraddress.user_address.common.dto.PageResponse;
 import com.useraddress.user_address.helper.response.ResponseHandler;
 import com.useraddress.user_address.helper.response.ResponseWrapper;
+import com.useraddress.user_address.user.dto.UserFilter;
 import com.useraddress.user_address.user.dto.UserRequest;
 import com.useraddress.user_address.user.dto.UserResponse;
 import com.useraddress.user_address.user.service.UserService;
@@ -39,6 +46,10 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
+
+    /** Stamped into the exported file name, e.g. usuarios_20260725_1830.xlsx */
+    private static final DateTimeFormatter FILE_TIMESTAMP =
+            DateTimeFormatter.ofPattern("yyyyMMdd_HHmm");
 
     private final UserService userService;
 
@@ -95,18 +106,79 @@ public class UserController {
     }
 
     @Operation(summary = "List users with pagination",
-            description = "The optional search parameter matches name, last name or second last name, "
-                    + "partial and case insensitive.")
+            description = """
+                    `search` matches any visible column. The remaining parameters filter a single
+                    column each. All of them are partial and case insensitive, and combine with AND
+                    — `lastName=perez&curp=PEL` returns the users matching both.
+                    """)
     @ApiResponse(responseCode = "200", description = "Page of users.")
     @GetMapping
     public ResponseEntity<ResponseWrapper<PageResponse<UserResponse>>> findAll(
-            @Parameter(description = "Term searched in name, lastName and secondLastName", example = "perez")
+            @Parameter(description = "Term searched in every visible column", example = "perez")
             @RequestParam(required = false) String search,
+            @Parameter(description = "Filters the name column") @RequestParam(required = false) String name,
+            @Parameter(description = "Filters the last name column") @RequestParam(required = false) String lastName,
+            @Parameter(description = "Filters the second last name column") @RequestParam(required = false) String secondLastName,
+            @Parameter(description = "Filters the CURP column") @RequestParam(required = false) String curp,
+            @Parameter(description = "Filters the RFC column") @RequestParam(required = false) String rfc,
+            @Parameter(description = "Filters the email column") @RequestParam(required = false) String email,
+            @Parameter(description = "Filters the phone column") @RequestParam(required = false) String phoneNumber,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        UserFilter filter = new UserFilter(
+                search, name, lastName, secondLastName, curp, rfc, email, phoneNumber);
+
         return ResponseHandler.wrapSuccessResponse(
                 Message.formatMessage(pageable, Models.USER.getValue()),
                 HttpStatus.OK,
-                userService.findAll(search, pageable));
+                userService.findAll(filter, pageable));
+    }
+
+    /**
+     * Streams the listing as a spreadsheet. This is the one endpoint that does
+     * not answer with the shared envelope: the body is the file itself.
+     */
+    @Operation(summary = "Export the users to Excel",
+            description = "Returns an .xlsx file with every user matching the same criteria the "
+                    + "listing accepts, so the file mirrors what is on screen. The export is never "
+                    + "paginated. Unlike the rest of the API, the body is the binary file, not the "
+                    + "standard response envelope.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Spreadsheet generated.",
+                    content = @Content(
+                            mediaType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            schema = @Schema(type = "string", format = "binary"))),
+            @ApiResponse(responseCode = "500", description = "The workbook could not be written, code 2111.",
+                    content = @Content(schema = @Schema(implementation = ResponseWrapper.class)))
+    })
+    @GetMapping(value = "/export",
+            produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    public ResponseEntity<byte[]> exportToExcel(
+            @Parameter(description = "Term searched in every visible column", example = "perez")
+            @RequestParam(required = false) String search,
+            @Parameter(description = "Filters the name column") @RequestParam(required = false) String name,
+            @Parameter(description = "Filters the last name column") @RequestParam(required = false) String lastName,
+            @Parameter(description = "Filters the second last name column") @RequestParam(required = false) String secondLastName,
+            @Parameter(description = "Filters the CURP column") @RequestParam(required = false) String curp,
+            @Parameter(description = "Filters the RFC column") @RequestParam(required = false) String rfc,
+            @Parameter(description = "Filters the email column") @RequestParam(required = false) String email,
+            @Parameter(description = "Filters the phone column") @RequestParam(required = false) String phoneNumber) {
+
+        UserFilter filter = new UserFilter(
+                search, name, lastName, secondLastName, curp, rfc, email, phoneNumber);
+
+        byte[] file = userService.exportToExcel(filter);
+        String fileName = Message.formatMessage(
+                Message.EXPORT_FILE_NAME,
+                LocalDateTime.now().format(FILE_TIMESTAMP));
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.attachment().filename(fileName).build().toString())
+                .contentLength(file.length)
+                .body(file);
     }
 
     @Operation(summary = "Delete a user",

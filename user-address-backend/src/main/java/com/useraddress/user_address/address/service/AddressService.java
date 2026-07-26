@@ -1,9 +1,11 @@
 package com.useraddress.user_address.address.service;
 
-import java.util.List;
+import org.springframework.data.domain.Pageable;
 
 import com.useraddress.user_address.address.dto.AddressRequest;
 import com.useraddress.user_address.address.dto.AddressResponse;
+import com.useraddress.user_address.common.dto.ExportFile;
+import com.useraddress.user_address.common.dto.PageResponse;
 
 public interface AddressService {
 
@@ -13,7 +15,9 @@ public interface AddressService {
 
     AddressResponse findById(String id);
 
-    List<AddressResponse> findByUserId(String userId);
+    PageResponse<AddressResponse> findByUserId(String userId, String search, Pageable pageable);
+
+    ExportFile exportToExcel(String userId, String search);
 
     void delete(String id);
 }

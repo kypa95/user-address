@@ -1,5 +1,7 @@
 package com.useraddress.user_address.user.service.impl;
 
+import java.io.IOException;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -9,11 +11,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.useraddress.user_address.address.repository.AddressRepository;
 import com.useraddress.user_address.common.dto.PageResponse;
 import com.useraddress.user_address.helper.exception.GeneralException;
+import com.useraddress.user_address.user.dto.UserFilter;
 import com.useraddress.user_address.user.dto.UserRequest;
 import com.useraddress.user_address.user.dto.UserResponse;
 import com.useraddress.user_address.user.entity.User;
+import com.useraddress.user_address.user.export.UserExcelExporter;
 import com.useraddress.user_address.user.mapper.UserMapper;
 import com.useraddress.user_address.user.repository.UserRepository;
+import com.useraddress.user_address.user.repository.UserSpecifications;
 import com.useraddress.user_address.user.service.UserService;
 import com.useraddress.user_address.util.Message;
 import com.useraddress.user_address.util.enums.ErrorCode;
@@ -35,6 +40,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
     private final UserMapper userMapper;
+    private final UserExcelExporter userExcelExporter;
 
     /**
      * Creates a new user after checking that its CURP, RFC and email are free.
@@ -83,25 +89,51 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * Returns a page of users, optionally filtered by a search term.
+     * Returns a page of users narrowed by the given criteria.
      *
-     * <p>A blank or {@code null} term returns every user; otherwise the
-     * repository search runs against the indexed columns.
+     * <p>An empty filter returns every user; otherwise only the criteria that
+     * carry a value reach the database.
      *
-     * @param search   free-text term; blank means no filter
+     * @param filter   global term and per-column filters
      * @param pageable the requested page and size
      * @return a page of users wrapped in a {@link PageResponse}
      */
     @Override
     @Transactional(readOnly = true)
-    public PageResponse<UserResponse> findAll(String search, Pageable pageable) {
-        String term = (search == null) ? "" : search.trim();
+    public PageResponse<UserResponse> findAll(UserFilter filter, Pageable pageable) {
+        return PageResponse.from(loadPage(filter, pageable).map(userMapper::toResponse));
+    }
 
-        Page<User> page = term.isEmpty()
+    /**
+     * Exports every user matching the criteria, letting the exporter pull the
+     * rows page by page so the whole table is never held in memory at once.
+     *
+     * @param filter same criteria the listing accepts; empty exports everything
+     * @return the .xlsx file as a byte array
+     * @throws GeneralException with HTTP 500 when the workbook cannot be written
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public byte[] exportToExcel(UserFilter filter) {
+        try {
+            return userExcelExporter.export(pageable -> loadPage(filter, pageable));
+        } catch (IOException exception) {
+            throw new GeneralException(
+                    Message.formatMessage(Message.REPORT_GENERATION_FAILED, Models.USER.getValue()),
+                    ErrorCode.GENERATE_REPORT_FAILED.getValue(),
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    exception.getMessage());
+        }
+    }
+
+    /**
+     * Single place the listing and the export go through, so both always apply
+     * the same criteria. An empty filter skips the specification altogether.
+     */
+    private Page<User> loadPage(UserFilter filter, Pageable pageable) {
+        return filter.isEmpty()
                 ? userRepository.findAll(pageable)
-                : userRepository.search(term, pageable);
-
-        return PageResponse.from(page.map(userMapper::toResponse));
+                : userRepository.findAll(UserSpecifications.matching(filter), pageable);
     }
 
     /**

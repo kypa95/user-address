@@ -50,10 +50,11 @@ public record UserRequest(
         @Pattern(regexp = ValidationPatterns.EMAIL, message = "format is invalid")
         String email,
 
-        @Schema(description = "Phone number, 10 digits", example = "+52 55 1234 5678", maxLength = 100)
+        @Schema(description = "Phone number in E.164, or a Mexican national number",
+                example = "+525512345678", maxLength = 100)
         @NotBlank(message = "is required")
         @Size(max = 100, message = "must be at most 100 characters")
         @Pattern(regexp = ValidationPatterns.PHONE_NUMBER,
-                message = "must contain 10 digits, optionally prefixed with the country code")
+                message = "must be a phone in E.164 (+525512345678) or 10 digits")
         String phoneNumber) {
 }
