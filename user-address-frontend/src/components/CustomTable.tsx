@@ -61,22 +61,21 @@ export default function CustomTable({
     ? columns.slice(0, 2).map((column) => column.accessorKey ?? column.id)
     : [];
 
+  const tableState: Record<string, unknown> = {
+    isLoading,
+    showAlertBanner: Boolean(errorMessage),
+    columnPinning: { left: pinnedLeft },
+  };
+  if (pagination !== undefined) tableState.pagination = pagination;
+  if (globalFilter !== undefined) tableState.globalFilter = globalFilter;
+  if (columnFilters !== undefined) tableState.columnFilters = columnFilters;
+
   // MRT's config generics are sidestepped with a cast: the shape is validated by
   // the prop interface above, and the runtime object is what MRT expects.
   const table = useMaterialReactTable({
     columns,
     data,
-    // Pagination, the search box and the column filters stay controlled in both
-    // modes, so the inputs keep their text when the table flips between paging
-    // on the server and filtering in the browser.
-    state: {
-      isLoading,
-      showAlertBanner: Boolean(errorMessage),
-      pagination,
-      globalFilter,
-      columnFilters,
-      columnPinning: { left: pinnedLeft },
-    },
+    state: tableState,
     enablePagination: true,
     enableGlobalFilter: true,
     enableColumnFilters: true,
