@@ -35,7 +35,6 @@ Docker Desktop corriendo, y un solo comando levanta los **tres** servicios
 (Postgres + backend + frontend):
 
 ```bash
-cp .env.example .env
 docker compose up -d --build
 ```
 
