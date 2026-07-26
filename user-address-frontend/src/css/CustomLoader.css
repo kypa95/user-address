@@ -1,0 +1,25 @@
+.custom-loader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(18, 32, 47, 0.45);
+  backdrop-filter: blur(1px);
+}
+
+.custom-loader-icon {
+  color: #ffffff;
+  font-size: 64px !important;
+  animation: custom-loader-spin 0.9s linear infinite;
+}
+
+@keyframes custom-loader-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

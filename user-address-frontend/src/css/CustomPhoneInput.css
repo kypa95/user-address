@@ -1,0 +1,13 @@
+.custom-phone-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.custom-phone-input .PhoneInputCountry {
+  margin-top: 8px;
+}
+
+.custom-phone-input .PhoneInputInput {
+  flex: 1;
+}
