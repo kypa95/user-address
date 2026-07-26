@@ -13,6 +13,15 @@ interface InnerInputProps {
   disabled?: boolean;
 }
 
+/** getCountryCallingCode throws on an unknown country; never let that crash the field. */
+function safeCallingCode(country: Country): string {
+  try {
+    return getCountryCallingCode(country);
+  } catch {
+    return '';
+  }
+}
+
 const MuiPhoneField = forwardRef<HTMLInputElement, InnerInputProps>(
   function MuiPhoneField({ label, error, helperText, ...rest }, ref) {
     return (
@@ -69,10 +78,11 @@ export default function CustomPhoneInput({
 
     if (nextValue && maxDigits) {
       const digits = nextValue.replace(/\D/g, '');
-      const callingCode = getCountryCallingCode(country);
-      const national = digits.startsWith(callingCode)
-        ? digits.slice(callingCode.length)
-        : digits;
+      const callingCode = country ? safeCallingCode(country) : '';
+      const national =
+        callingCode && digits.startsWith(callingCode)
+          ? digits.slice(callingCode.length)
+          : digits;
       if (national.length > maxDigits) return;
     }
 
@@ -84,6 +94,8 @@ export default function CustomPhoneInput({
       id={id}
       countryCallingCodeEditable={false}
       defaultCountry={defaultCountry}
+      countries={['MX']}
+      addInternationalOption={false}
       value={value || undefined}
       onChange={handleChange}
       onCountryChange={(next) => next && setCountry(next)}

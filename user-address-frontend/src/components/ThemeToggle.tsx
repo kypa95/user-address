@@ -1,7 +1,7 @@
 import { IconButton, Tooltip } from '@mui/material';
 import Brightness4 from '@mui/icons-material/Brightness4';
 import Brightness7 from '@mui/icons-material/Brightness7';
-import { useThemeMode } from '../theme/ThemeModeProvider';
+import { useThemeMode } from '../hooks/useThemeMode';
 
 /**
  * Toggles between light and dark theme.
