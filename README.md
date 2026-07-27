@@ -7,7 +7,7 @@ TypeScript, todo levantado con Docker.
 **Repo:** https://github.com/kypa95/user-address
 
 > Está en el plan gratuito de Render, así que los servicios se duermen sin
-> tráfico: la primera carga puede tardar unos segundos mientras despiertan.
+> tráfico: la primera carga puede tardar unos minutos mientras despiertan.
 
 ## Qué resuelve
 
